@@ -4,12 +4,32 @@ Parrot is a CLI tool that allows you to record and replay your terminal sessions
 capture commands that you would like to reuse later, making it a great tool for automating
 repetitive tasks.
 
+Justfiles, Makefiles, package.json files etc. solve part of this problem, but they are project
+specific. Parrot allows you to create reusable command sequences that you find yourself repeating
+and can be used anywhere, without being tied to a specific project.
+
 ## Features
 
 - Record commands interactively or through CLI arguments
 - Save recorded commands to a file for later use
 - Replay recorded commands in the terminal
 - Simple and intuitive command-line interface
+
+## Installation
+
+Make sure Parrot is in your system's PATH. After this you need to set up shell integration for
+your shell. Below are instructions for Fish shell.
+
+### Fish Shell Integration
+
+Add the following line to your `~/.config/fish/config.fish` file:
+
+```fish
+parrot init fish | source
+```
+
+This will enable Parrot's shell integration for Fish shell, which is necessary for recording and
+replaying commands.
 
 ## Examples
 
