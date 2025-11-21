@@ -45,6 +45,7 @@ enum ParrotCommand {
         tag: Option<String>,
     },
 
+    /// Initialize shell integration
     #[clap(value_enum)]
     Init {
         /// Shell type to initialize
@@ -54,6 +55,13 @@ enum ParrotCommand {
 
 #[derive(Subcommand, Debug)]
 enum RecordAction {
+    /// Start interactive recording in your terminal text editor
+    Interactive {
+        /// Name or tag of the recording
+        #[clap(short, long)]
+        tag: String,
+    },
+
     /// Start recording
     Start {
         /// Name or tag of the recording
@@ -78,6 +86,12 @@ enum RecordAction {
 enum ParrotError {
     #[error("Storage error: {0}")]
     StorageError(#[from] storage::StorageError),
+
+    #[error("Record error: {0}")]
+    RecordError(#[from] record::RecordError),
+
+    #[error("Replay error: {0}")]
+    ReplayError(#[from] replay::ReplayError),
 }
 
 fn main() {
@@ -93,6 +107,7 @@ fn main() {
 }
 
 fn run_command(args: Args, mut storage: JsonFileStorage) -> Result<(), ParrotError> {
+    let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vim".to_string());
     let mut data = storage.load()?;
     let needs_save = matches!(args.command, ParrotCommand::Record(_));
 
@@ -107,12 +122,13 @@ fn run_command(args: Args, mut storage: JsonFileStorage) -> Result<(), ParrotErr
         },
         ParrotCommand::List => list::run(&mut data),
         ParrotCommand::Record(action) => match action {
+            RecordAction::Interactive { tag } => record::interactive(tag, &mut data, &editor)?,
             RecordAction::Start { tag } => record::start(tag, &mut data),
             RecordAction::Add { command } => record::add(command, &mut data),
             RecordAction::Stop => record::stop(&mut data),
             RecordAction::Abort => record::abort(&mut data),
         },
-        ParrotCommand::Replay { tag } => replay::run(tag, &data),
+        ParrotCommand::Replay { tag } => replay::run(tag, &data)?,
     }
 
     if needs_save {
